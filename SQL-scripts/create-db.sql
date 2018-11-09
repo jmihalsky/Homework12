@@ -44,7 +44,7 @@ CREATE TABLE ord(
     ship_cty varchar(40) NOT NULL,
     ship_st varchar(2) NOT NULL,
     ship_pc varchar(10),
-    ordsts varchar(5) NOT NULL DEFAULT 'O'
+    ordsts varchar(5) NOT NULL DEFAULT 'O',
     primary key(ordnum,cust_id)
 );
 
@@ -53,6 +53,18 @@ CREATE TABLE ord_line(
     ordlin integer NOT NULL,
     item_id integer NOT NULL,
     ordqty integer NOT NULL,
-    shpqty integer
+    shpqty integer,
     primary key(ordnum, ordlin)
+);
+
+CREATE TABLE cust(
+    cust_id integer NOT NULL auto_increment PRIMARY KEY,
+    email varchar(30) NOT NULL,
+    cust_first_name varchar(30) NOT NULL,
+    cust_last_name varchar(30) NOT NULL,
+    cust_addr1 varchar(40) NOT NULL,
+    cust_addr2 varchar(40),
+    cust_city varchar(30) NOT NULL,
+    cust_state varchar(2) NOT NULL,
+    cust_zip varchar(5) NOT NULL
 );

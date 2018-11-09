@@ -1,0 +1,8 @@
+# DOTENV 
+*.env
+
+#DS Store
+*.DS_Store
+
+#node modules
+node_modules

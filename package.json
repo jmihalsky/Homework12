@@ -1,0 +1,23 @@
+{
+  "name": "homework12",
+  "version": "1.0.0",
+  "description": "Homework 12 npm package for node and MySql",
+  "main": "bamazonCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmihalsky/Homework12.git"
+  },
+  "author": "Jeff Mihalsky",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jmihalsky/Homework12/issues"
+  },
+  "homepage": "https://github.com/jmihalsky/Homework12#readme",
+  "dependencies": {
+    "inquirer": "^6.2.0",
+    "mysql": "^2.16.0"
+  }
+}

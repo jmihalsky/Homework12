@@ -60,6 +60,7 @@ CREATE TABLE ord_line(
 CREATE TABLE cust(
     cust_id integer NOT NULL auto_increment PRIMARY KEY,
     email varchar(30) NOT NULL,
+    pword varchar(20) NOT NULL,
     cust_first_name varchar(30) NOT NULL,
     cust_last_name varchar(30) NOT NULL,
     cust_addr1 varchar(40) NOT NULL,

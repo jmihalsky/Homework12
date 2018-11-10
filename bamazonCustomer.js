@@ -1,6 +1,7 @@
 require("dotenv").config({path:"./keys.env"});
 
 var keys = require("./keys");
+var bamazon_cust_cart = require("./bamazon_cust_cart");
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
@@ -11,6 +12,17 @@ var connection = mysql.createConnection({
     password: "password",
     database: "bamazon"
 });
+
+var cust_info = {
+    usr_id: "",
+    usr_f_name: "",
+    usr_l_name: "",
+    usr_addr1: "",
+    usr_addr2: "",
+    usr_city: "",
+    usr_st: "",
+    usr_zip: "",
+};
 
 start_cust();
 
@@ -252,6 +264,9 @@ function cust_log(){
             if(res.length == 1)
             {
                 var usr_pw = "";
+                var usr_id = "";
+                var usr_f_name = "";
+                var usr_l_name = "";
                 var usr_addr1 = "";
                 var usr_addr2 = "";
                 var usr_city = "";
@@ -261,11 +276,14 @@ function cust_log(){
                 for(var i = 0; i < res.length; i++)
                 {
                     usr_pw = res[i].pword;
-                    usr_addr1 = res[i].cust_addr1;
-                    usr_addr2 = res[i].cust_addr2;
-                    usr_city = res[i].cust_city;
-                    usr_st = res[i].cust_state;
-                    usr_zip = res[i].cust_zip;
+                    cust_info.usr_id = res[i].cust_id;
+                    cust_info.usr_f_name = res[i].cust_first_name;
+                    cust_info.usr_l_name = res[i].cust_last_name;
+                    cust_info.usr_addr1 = res[i].cust_addr1;
+                    cust_info.usr_addr2 = res[i].cust_addr2;
+                    cust_info.usr_city = res[i].cust_city;
+                    cust_info.usr_st = res[i].cust_state;
+                    cust_info.usr_zip = res[i].cust_zip;
                 }
                 
                 inquirer.prompt([
@@ -277,7 +295,7 @@ function cust_log(){
                 ]).then(function(upwd){
                     if(upwd.u_pword === usr_pw)
                     {
-                        console.log("success");
+                        
                     }
                     else
                     {

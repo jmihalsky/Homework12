@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/jmihalsky/Homework12#readme",
   "dependencies": {
+    "dateformat": "^3.0.3",
     "inquirer": "^6.2.0",
+    "moment": "^2.22.2",
     "mysql": "^2.16.0"
   }
 }

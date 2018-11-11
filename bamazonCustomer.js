@@ -4,6 +4,7 @@ var keys = require("./keys");
 var bamazon_cust_cart = require("./bamazon_cust_cart");
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var moment = require("moment");
 
 var connection = mysql.createConnection({
     host: "127.0.0.1",
@@ -30,13 +31,16 @@ var ord = {
     ord_dte: "",
     ship_adr1: "",
     ship_adr2: "",
-    ship_cty: ""
+    ship_cty: "",
+    ship_zip: ""
 }
 
+var ordnum = "";
 var ord_line = [];
 
 var str_ord_line = 1;
 
+var usr_log = 0;
 
 start_cust();
 
@@ -354,17 +358,136 @@ function prod_avail(slt_prod){
             if (res[i].avail_qty > 0)
             {
                 var prd_id = res[i].item_id;
-                add_cart(prd_id);
+                inquirer.prompt([
+                    {
+                        type: "confirm",
+                        message: "There is inventory, Do you want to add to the cart?",
+                        name: "cart",
+                        default: true
+                    }
+                ]).then(function(Cart_A){
+                    if(Cart_A.cart)
+                    {
+                        add_cart(prd_id);
+                    }
+                    else
+                    {
+                        br_prod_menu();
+                    }
+                });
+                
             }
             else
             {
-                console.log("false");
-                return false;
+                console.log("There is not any available inventory for this product");
+                inquirer.prompt([
+                    {
+                        type: "confirm",
+                        message: "Do you want to search for another product",
+                        name: "no_cart",
+                        default: true
+                    }
+                ]).then(function(Cart_B){
+                    if(Cart_B.no_cart)
+                    {
+                        br_prod_menu();
+                    }
+                })
             }
         }
     });
 }
 
-function add_cart(){
+function add_cart(prd_id){
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "how many do you want?",
+            name: "qty"
+        }
+    ]).then(function(itm_qty){
+        var item_qty = parseInt(itm_qty.qty);
+        if (item_qty > 0 )
+        {
+            ord_line.push(
+                {
+                    ordlin: str_ord_line,
+                    item_id: prd_id,
+                    ordqty: item_qty 
+                }
+            );
+            str_ord_line++;
+            inquirer.prompt([
+                {
+                    type: "confirm",
+                    message: "Do you want to add more items?",
+                    name: "more_cart",
+                    default: true      
+                }
+            ]).then(function(Cart_C){
+                if(Cart_C.more_cart)
+                {
+                    br_prod_menu();
+                }
+                else
+                {
+                    complete_cart();
+                }
+            })
+        }
+        else
+        {
+            console.log("You need to enter a number.");
+            add_cart(prd_id);
+        }
+    })
+}
+
+function complete_cart(){
+    if(cust_info.usr_id == "")
+    {
+        console.log("need to login");
+    }
+    else
+    {
+        console.log("contiue with order completion");
+        get_ordnum();
+    }
+}
+
+function get_ordnum(){
+    var nxt_ordnum = "";
+    connection.query("select ordnum, ordnum + 1 nxt_ordnum from ordnum",function(err,res){
+        if(err) throw err;
+        for(var i = 0; i < res.length; i++)
+        {
+            ordnum = res[i].ordnum;
+            nxt_ordnum = res[i].nxt_ordnum;
+            console.log(nxt_ordnum);
+            console.log(moment());
+            connection.query("update ordnum set ordnum = ?", nxt_ordnum, function(err,res){
+                if(err) throw err;
+                create_order();
+            });
+        }
+    });
+}
+
+function create_order(){
+    ord = {
+        ordnum: ordnum,
+        cust_id: cust_info.usr_id,
+        ord_dte: moment().format("YYYY-MM-DD HH:mm:ss"),
+        ship_adr1: cust_info.usr_addr1,
+        ship_adr2: cust_info.usr_addr2,
+        ship_cty: cust_info.usr_city,
+        ship_st: cust_info.usr_st,
+        ship_pc: cust_info.usr_zip
+    };
+    connection.query("insert into ord set ?",ord,function(err,res){
+        if(err) throw err;
+        console.log("order created");
+    });
+
 
 }

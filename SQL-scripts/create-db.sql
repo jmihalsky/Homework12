@@ -76,6 +76,13 @@ CREATE TABLE cust(
     cust_zip varchar(5) NOT NULL
 );
 
+CREATE TABLE ordnum(
+    ordnum varchar(10) PRIMARY KEY
+);
+
+insert into ordnum(ordnum)
+values('100000');
+
 CREATE VIEW avail_inv
 AS
 select item_id,

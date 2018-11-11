@@ -464,7 +464,6 @@ function get_ordnum(){
             ordnum = res[i].ordnum;
             nxt_ordnum = res[i].nxt_ordnum;
             console.log(nxt_ordnum);
-            console.log(moment());
             connection.query("update ordnum set ordnum = ?", nxt_ordnum, function(err,res){
                 if(err) throw err;
                 create_order();
@@ -487,7 +486,26 @@ function create_order(){
     connection.query("insert into ord set ?",ord,function(err,res){
         if(err) throw err;
         console.log("order created");
+        create_ord_lines();
     });
 
 
+}
+
+function create_ord_lines(){
+    console.log(ord_line);
+    for(var i = 0; i < ord_line.length; i++)
+    {
+        connection.query("insert into ord_line set ?",
+        {
+            ordnum: ordnum,
+            ordlin: ord_line[i].ordlin,
+            item_id: ord_line[i].item_id,
+            ordqty: ord_line[i].ordqty,
+            shpqty: 0
+        }, function(err){
+            if(err) throw err;
+            console.log("Order Line created");
+        });
+    }
 }

@@ -30,6 +30,12 @@ CREATE TABLE invpck(
     pcksts varchar(5)
 );
 
+CREATE TABLE locmst(
+    loc varchar(20) NOT NULL PRIMARY KEY,
+    palqty integer NOT NULL,
+    curqty integer
+)
+
 CREATE TABLE departments(
     department_id integer NOT NULL auto_increment PRIMARY KEY,
     department_name varchar(40) NOT NULL
@@ -69,3 +75,38 @@ CREATE TABLE cust(
     cust_state varchar(2) NOT NULL,
     cust_zip varchar(5) NOT NULL
 );
+
+CREATE VIEW avail_inv
+AS
+select item_id,
+	product_name,
+    department_id,
+    price,
+    invqty,
+    pckqty,
+    invqty - pckqty avail_qty
+from
+	(select products.item_id,
+		products.product_name,
+		products.department_id,
+		products.price,
+		sum(invtbl.qty) invqty,
+		IFNULL(a.pckqty, 0) pckqty
+	from products
+		inner join invtbl
+		on products.item_id = invtbl.item_id
+		left join 
+		(select loc,
+			item_id,
+			sum(pckqty) pckqty
+		from invpck
+		where pcksts != 'C'
+		group by loc,
+			item_id) as a
+		on invtbl.loc = a.loc
+			and invtbl.item_id = a.item_id
+	group by products.item_id,
+		products.product_name,
+		products.department_id,
+		products.price,
+		IFNULL(a.pckqty, 0)) as b;

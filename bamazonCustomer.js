@@ -24,6 +24,20 @@ var cust_info = {
     usr_zip: "",
 };
 
+var ord = {
+    ordnum: "",
+    cust_id: "",
+    ord_dte: "",
+    ship_adr1: "",
+    ship_adr2: "",
+    ship_cty: ""
+}
+
+var ord_line = [];
+
+var str_ord_line = 1;
+
+
 start_cust();
 
 function start_cust(){
@@ -241,10 +255,25 @@ function br_prod_dept(){
             console.log("Product ID   |   Product Name   |  Price   ");
             connection.query("select products.* from products inner join departments on products.department_id = departments.department_id where products.prod_sts = 'A' and departments.department_name = ?", dept_menu.dept,function(err,res){
                 if(err) throw err;
-                for(var i = 0; i < res.length; i++)
-                {
-                    console.log(res[i].item_id + " | " + res[i].product_name + " | " + res[i].price);
-                }
+                inquirer.prompt([
+                    {
+                        type: "list",
+                        message: "Select a product which you would like to purchase.",
+                        name: "dept_prod",
+                        choices: function(){
+                            var deptProd = [];
+                            for (var i = 0; i < res.length; i++)
+                            {
+                                deptProd.push(res[i].item_id + "|" + res[i].product_name + "|" + res[i].price);
+                            }
+                            return deptProd;
+                        }
+                    }
+                ]).then(function(dept_prod){
+                    var slt_prod = dept_prod.dept_prod;
+                    prod_avail(slt_prod);
+                });
+                
             });
         })
     });
@@ -295,7 +324,9 @@ function cust_log(){
                 ]).then(function(upwd){
                     if(upwd.u_pword === usr_pw)
                     {
-                        
+                        console.log("You can now browse products");
+                        br_prod_menu();
+
                     }
                     else
                     {
@@ -311,4 +342,29 @@ function cust_log(){
             }
         });
     });
+}
+
+function prod_avail(slt_prod){
+    var sp = slt_prod.split("|");
+    console.log(sp[0]);
+    connection.query("select * from avail_inv where item_id = ?", sp[0], function(err,res){
+        if(err) throw err;
+        for (var i = 0; i < res.length; i++)
+        {
+            if (res[i].avail_qty > 0)
+            {
+                var prd_id = res[i].item_id;
+                add_cart(prd_id);
+            }
+            else
+            {
+                console.log("false");
+                return false;
+            }
+        }
+    });
+}
+
+function add_cart(){
+
 }

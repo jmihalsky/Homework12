@@ -117,3 +117,24 @@ from
 		products.department_id,
 		products.price,
 		IFNULL(a.pckqty, 0)) as b;
+
+CREATE VIEW pck_sel
+AS
+select  invtbl.loc,
+    invtbl.load_id,
+    invtbl.item_id,
+    invtbl.qty,
+    IFNULL(a.tot_pckqty,0) tot_pckqty,
+    invtbl.qty - (IFNULL(a.tot_pckqty,0)) avl_pck_qty
+from invtbl
+left join 
+	(select loc,
+		item_id,
+		sum(pckqty) tot_pckqty
+	from invpck
+	where pcksts != 'C'
+	group by loc,
+		item_id) a
+on invtbl.loc = a.loc
+	and invtbl.item_id = a.item_id
+where  invtbl.qty - (IFNULL(a.tot_pckqty,0)) > 0;

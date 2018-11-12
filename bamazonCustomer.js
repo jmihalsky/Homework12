@@ -355,7 +355,7 @@ function cust_log(){
                 ]).then(function(upwd){
                     if(upwd.u_pword === usr_pw)
                     {
-                        if(ord_line.length < 1 )
+                        if(ord_line.length > 0 )
                         {
                             complete_cart();
                         }
@@ -527,7 +527,6 @@ function create_order(){
 }
 
 function create_ord_lines(){
-    console.log(ord_line);
     for(var i = 0; i < ord_line.length; i++)
     {
         connection.query("insert into ord_line set ?",
@@ -542,4 +541,35 @@ function create_ord_lines(){
             console.log("Order Line created");
         });
     }
+    crt_pck_wrk();
+}
+
+function crt_pck_wrk(){
+    connection.query("select * from ord_line where ordnum = ?", ordnum, function(err,res){
+        if(err) throw err;
+        for(var i = 0; i < res.length; i++)
+        {
+            var pck_itm_id = res[i].item_id;
+            var pckqty = res[i].ordqty;
+            var oline = res[i].ordlin;
+            connection.query("select * from pck_sel where item_id = " + pck_itm_id + " and avl_pck_qty >= " + pckqty + " limit 1", function(err,ras){
+                if(err) throw err;
+                for(var i = 0; i < ras.length; i++)
+                {
+                    connection.query("insert into invpck set ?", 
+                    {
+                        loc: ras[i].loc,
+                        item_id: pck_itm_id,
+                        ordnum: ordnum,
+                        pckqty: pckqty,
+                        appqty: 0,
+                        pcksts: "N"
+                    }, function(err){
+                        if(err) throw err;
+                    });
+                }
+            });
+        }
+    });
+    br_prod_menu();
 }

@@ -233,6 +233,7 @@ function br_prod_menu(){
                 br_prod_dept();
                 break;
             case "All Products":
+                all_products();
                 break;
         }
     });
@@ -283,6 +284,32 @@ function br_prod_dept(){
     });
 }
 
+function all_products(){
+    console.log("Product ID   |   Product Name   | Department |  Price   ");
+    connection.query("select products.*, departments.department_name from products inner join departments on products.department_id = departments.department_id where prod_sts = 'A'",function(err,res){
+        if(err) throw err;
+        console.log(res.length);
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Select a product which you would like to purchase.",
+                name: "prod_all",
+                choices: function(){
+                    var all_prod = [];
+                    for(var i = 0; i < res.length; i++)
+                    {
+                        all_prod.push(res[i].item_id + "|" + res[i].product_name + "|" + res[i].department_name + "|" + res[i].price)
+                    }
+                    return all_prod;
+                }
+            }
+        ]).then(function(ProdAll){
+            var slt_prod = ProdAll.prod_all;
+            prod_avail(slt_prod);
+        })
+    });
+}
+
 function cust_log(){
     inquirer.prompt([
         {
@@ -328,9 +355,15 @@ function cust_log(){
                 ]).then(function(upwd){
                     if(upwd.u_pword === usr_pw)
                     {
-                        console.log("You can now browse products");
-                        br_prod_menu();
-
+                        if(ord_line.length < 1 )
+                        {
+                            complete_cart();
+                        }
+                        else
+                        {
+                            console.log("You can now browse products");
+                            br_prod_menu();
+                        }
                     }
                     else
                     {
@@ -446,7 +479,8 @@ function add_cart(prd_id){
 function complete_cart(){
     if(cust_info.usr_id == "")
     {
-        console.log("need to login");
+        console.log("You need to login");
+        cust_log();
     }
     else
     {

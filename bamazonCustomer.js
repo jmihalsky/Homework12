@@ -1,7 +1,6 @@
 require("dotenv").config({path:"./keys.env"});
 
 var keys = require("./keys");
-var bamazon_cust_cart = require("./bamazon_cust_cart");
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var moment = require("moment");

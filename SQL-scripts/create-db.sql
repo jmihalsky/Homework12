@@ -138,3 +138,34 @@ left join
 on invtbl.loc = a.loc
 	and invtbl.item_id = a.item_id
 where  invtbl.qty - (IFNULL(a.tot_pckqty,0)) > 0;
+
+CREATE VIEW prod_inv
+AS
+select products.item_id,
+	products.product_name,
+    departments.department_name,
+    products.price,
+    products.prod_sts,
+    IFNULL(b.loc_qty,0) loc_qty,
+    IFNULL(b.tot_pckqty,0) tot_pckqty,
+    IFNULL(b.loc_qty,0) - IFNULL(b.tot_pckqty,0) avail_qty
+from products
+	inner join departments
+    on products.department_id = departments.department_id
+    left join 
+	(select invtbl.item_id,
+		sum(qty) loc_qty,
+		sum(IFNULL(a.tot_pckqty,0)) tot_pckqty
+	from invtbl
+		left join
+		(select loc,
+			item_id,
+			sum(pckqty) tot_pckqty
+		from invpck
+		where pcksts != 'C'
+		group by loc,
+			item_id) as a
+		on invtbl.loc = a.loc
+			and invtbl.item_id = a.item_id
+	group by invtbl.item_id) as b
+    on products.item_id = b.item_id;

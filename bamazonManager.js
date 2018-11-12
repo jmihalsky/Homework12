@@ -21,6 +21,21 @@ function start_mgr(){
             name: "main_opt"
         }
     ]).then(function(MainMnu){
-
+        switch(MainMnu.main_opt)
+        {
+            case "View Products for Sale":
+                view_prod();
+                break;
+            case "View Low Inventory":
+                break;
+            case "Add to Inventory":
+                break;
+            case "Add New Product":
+                break;
+        }
     });
+}
+
+function view_prod(){
+
 }

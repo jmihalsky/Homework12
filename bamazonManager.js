@@ -33,6 +33,7 @@ function start_mgr(){
                 add_inv();
                 break;
             case "Add New Product":
+                new_prod();
                 break;
         }
     });
@@ -171,6 +172,70 @@ function add_inv(){
                             });
                         });
                     }
+                });
+            });
+        });
+    });
+}
+
+function new_prod(){
+    connection.query("select * from departments",function(err,res){
+        if(err) throw err;
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Select a department which the new product will be part of:",
+                name: "prod_dept",
+                choices: function(){
+                    var dept = [];
+                    for(var i = 0; i < res.length; i++)
+                    {
+                        dept.push(res[i].department_id + "|" + res[i].department_name);
+                    }
+                    return dept;
+                }
+            }
+        ]).then(function(DeptProd){
+            var temp_dept = DeptProd.prod_dept.split("|");
+            var dept = temp_dept[0];
+            inquirer.prompt([
+                {
+                    type: "input",
+                    message: "Product Name:",
+                    name: "prodnam"
+                },
+                {
+                    type: "input",
+                    message: "Product Price:",
+                    name: "prodprc"
+                }
+            ]).then(function(NewProd){
+                var prod = {
+                    product_name: NewProd.prodnam,
+                    department_id: dept,
+                    price: NewProd.prodprc
+                };
+
+                connection.query("insert into products set ?",prod,function(err,res){
+                    if(err) throw err;
+                    console.log("item created");
+                    inquirer.prompt([
+                        {
+                            type: "confirm",
+                            message: "Do you want to add inventory for this product",
+                            name: "prodinv",
+                            default: true
+                        }
+                    ]).then(function(NewProdInv){
+                        if(NewProdInv.prodinv)
+                        {
+                            add_inv();
+                        }
+                        else
+                        {
+                            start_mgr();
+                        }
+                    });
                 });
             });
         });

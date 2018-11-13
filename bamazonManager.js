@@ -160,7 +160,11 @@ function add_inv(){
 
                                         connection.query("insert into invtbl set ?",inv,function(err,res){
                                             if(err) throw err;
-
+                                            connection.query("update locmst set curqty = curqty + 1 where loc = ?",locsel,function(err,res){
+                                                if(err) throw err;
+                                                console.log("inventory added");
+                                                start_mgr();
+                                            });
                                         });
                                     });
                                 }

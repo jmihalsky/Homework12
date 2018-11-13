@@ -25,6 +25,7 @@ CREATE TABLE invpck(
     loc varchar(30) NOT NULL,
     item_id integer NOT NULL,
     ordnum varchar(10) NOT NULL,
+    ordlin integer,
     pckqty integer NOT NULL,
     appqty integer,
     pcksts varchar(5)

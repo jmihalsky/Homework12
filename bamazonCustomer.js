@@ -560,6 +560,7 @@ function crt_pck_wrk(){
                         loc: ras[i].loc,
                         item_id: pck_itm_id,
                         ordnum: ordnum,
+                        ordlin: oline,
                         pckqty: pckqty,
                         appqty: 0,
                         pcksts: "N"

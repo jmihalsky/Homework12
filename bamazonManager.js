@@ -85,5 +85,90 @@ function low_inv(){
 }
 
 function add_inv(){
-    
+    connection.query("select * from products",function(err,res){
+        if(err) throw err;
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Select a product which you want to add inventory for:",
+                name: "prod_inv_add",
+                choices: function(){
+                    var all_prod = [];
+                    for(var i = 0; i < res.length; i++)
+                    {
+                        all_prod.push(res[i].item_id + "|" + res[i].product_name);
+                    }
+                    return all_prod;
+                }
+            }
+        ]).then(function(ProdInvAdd){
+            var sp = ProdInvAdd.prod_inv_add.split("|");
+            var slt_prod = sp[0];
+            inquirer.prompt([
+                {
+                    type: "input",
+                    message: "Enter the load number (pallet id) of the new inventory.",
+                    name: "load_num"
+                }
+            ]).then(function(Load){
+                connection.query("select count(*) lodcnt from invtbl where load_id = ?", Load.load_num, function(err,res){
+                    if(err) throw err;
+                    if(res[0].lodcnt > 0)
+                    {
+                        console.log("Load number exists, try adding the item again");
+                        add_inv();
+                    }
+                    else
+                    {
+                        var lodnum = Load.load_num;
+                        inquirer.prompt([
+                            {
+                                type: "input",
+                                message: "Enter the quantity of the product on the pallet.",
+                                name: "palqty"
+                            }
+                        ]).then(function(PalQty){
+                            var qty = PalQty.palqty;
+                            connection.query("select * from locmst where curqty = 0", function(err,res){
+                                if(err) throw err;
+
+                                if(res.length > 0)
+                                {
+                                    inquirer.prompt([
+                                        {
+                                            type: "rawlist",
+                                            message: "Select a location:",
+                                            name: "sel_loc",
+                                            choices: function(){
+                                                var a_loc = [];
+                                                for(var i = 0; i < res.length; i++)
+                                                {
+                                                    a_loc.push(res[i].loc);
+                                                }
+                                                return a_loc;
+                                            }
+                                        }
+                                    ]).then(function(LocSel){
+                                        var locsel = LocSel.sel_loc;
+
+                                        var inv = {
+                                            loc: LocSel.sel_loc,
+                                            load_id: lodnum,
+                                            item_id: slt_prod,
+                                            qty: qty
+                                        };
+
+                                        connection.query("insert into invtbl set ?",inv,function(err,res){
+                                            if(err) throw err;
+
+                                        });
+                                    });
+                                }
+                            });
+                        });
+                    }
+                });
+            });
+        });
+    });
 }

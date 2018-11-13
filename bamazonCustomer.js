@@ -297,7 +297,7 @@ function all_products(){
                     var all_prod = [];
                     for(var i = 0; i < res.length; i++)
                     {
-                        all_prod.push(res[i].item_id + "|" + res[i].product_name + "|" + res[i].department_name + "|" + res[i].price)
+                        all_prod.push(res[i].item_id + "|" + res[i].product_name + "|" + res[i].department_name + "|" + res[i].price);
                     }
                     return all_prod;
                 }
@@ -305,7 +305,7 @@ function all_products(){
         ]).then(function(ProdAll){
             var slt_prod = ProdAll.prod_all;
             prod_avail(slt_prod);
-        })
+        });
     });
 }
 

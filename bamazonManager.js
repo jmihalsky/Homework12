@@ -27,8 +27,10 @@ function start_mgr(){
                 view_prod();
                 break;
             case "View Low Inventory":
+                low_inv();
                 break;
             case "Add to Inventory":
+                add_inv();
                 break;
             case "Add New Product":
                 break;
@@ -37,5 +39,51 @@ function start_mgr(){
 }
 
 function view_prod(){
+    console.log("Product ID | Product Name | Department | Price | Product Status | Available Quantity");
+    connection.query("select * from prod_inv",function(err,res){
+        if(err) throw err;
+        res.forEach(prn_all_inv);
+    });
+    inquirer.prompt([
+        {
+            type: "confirm",
+            message: "Do you want to return to the main menu",
+            name: "rtn_menu",
+            default: true
+        }
+    ]).then(function(Rtn_menu){
+        if(Rtn_menu.rtn_menu)
+        {
+            start_mgr();
+        }
+    });
+}
 
+function prn_all_inv(inv){
+    console.log(inv.item_id + "|" + inv.product_name + "|" + inv.department_name + "|" + inv.price + "|" + inv.prod_sts + "|" + inv.avail_qty);
+}
+
+function low_inv(){
+    console.log("Product ID | Product Name | Department | Price | Product Status | Available Quantity");
+    connection.query("select * from prod_inv where avail_qty <= 5",function(err,res){
+        if(err) throw err;
+        res.forEach(prn_all_inv)
+    });
+    inquirer.prompt([
+        {
+            type: "confirm",
+            message: "Do you want to return to the main menu",
+            name: "rtn_menu",
+            default: true
+        }
+    ]).then(function(Rtn_menu){
+        if(Rtn_menu.rtn_menu)
+        {
+            start_mgr();
+        }
+    });
+}
+
+function add_inv(){
+    
 }

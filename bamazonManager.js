@@ -10,6 +10,9 @@ var connection = mysql.createConnection({
     database: "bamazon"
 });
 
+var pck_info = {};
+var pckid = 0;
+
 start_mgr();
 
 function start_mgr(){
@@ -17,7 +20,7 @@ function start_mgr(){
         {
             type: "list",
             message: "Select a manager option for the system",
-            choices: ["View Products for Sale","View Low Inventory","Add to Inventory","Add New Product"],
+            choices: ["View Products for Sale","View Low Inventory","Add to Inventory","Add New Product","Pick Orders"],
             name: "main_opt"
         }
     ]).then(function(MainMnu){
@@ -34,6 +37,9 @@ function start_mgr(){
                 break;
             case "Add New Product":
                 new_prod();
+                break;
+            case "Pick Orders":
+                pck_ord();
                 break;
         }
     });
@@ -238,6 +244,141 @@ function new_prod(){
                     });
                 });
             });
+        });
+    });
+}
+
+function pck_ord(){
+    connection.query("select * from invpck where pcksts = 'N'",function(err,res){
+        if(err) throw err;
+        inquirer.prompt([
+            {
+                type: "rawlist",
+                message: "Select the pick work to complete",
+                name: "pcklst",
+                choices: function(){
+                    var pcks = [];
+                    for(var i = 0; i < res.length; i++)
+                    {
+                        pcks.push(res[i].picref + "|" + res[i].loc + "|" + res[i].pckqty);
+                    }
+                    return pcks;
+                }
+            }
+        ]).then(function(PckSel){
+            var temp_pck = PckSel.pcklst.split("|");
+            pckid = temp_pck[0];
+            pck_itm(pckid);
+        });
+    });
+}
+
+function pck_itm(pckid){
+    pck_info = {};
+    connection.query("select * from invpck where picref = ?",pckid,function(err,res){
+        if(err) throw err;
+        pck_info = {
+            p_loc: res[0].loc,
+            p_item_id: res[0].item_id,
+            p_ordnum: res[0].ordnum,
+            p_ordlin: res[0].ordlin,
+            p_pckqty: res[0].pckqty,
+            p_pcksts: res[0].pcksts
+        };
+        pck_loc_val(pck_info);
+    });
+}
+
+function pck_loc_val(pck_info){
+    console.log("Location: " + pck_info.p_loc);
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "Enter the location you are picking from:",
+            name: "usrloc"
+        }
+    ]).then(function(UsrLoc){
+        if(UsrLoc.usrloc === pck_info.p_loc)
+        {
+            pck_qty(pck_info);
+        }
+        else
+        {
+            console.log("You are not at the correct location:");
+            pck_loc_val(pck_info);
+        }
+    })
+}
+
+function pck_qty(pck_info){
+    connection.query("select * from invtbl where loc = '" + pck_info.p_loc + "' and item_id = ?", pck_info.p_item_id, function(err,res){
+        if(err) throw err;
+        inquirer.prompt([
+            {
+                type: "rawlist",
+                message: "Select a pallet to pick from: ",
+                name: "sel_pallet",
+                choices: function(){
+                    var pall_sel = [];
+                    for(var i = 0; i < res.length; i++)
+                    {
+                        pall_sel.push(res[i].load_id + "|" + res[i].qty);
+                    }
+                    return pall_sel;
+                }
+            }
+        ]).then(function(PalSel){
+            var temp_pal = PalSel.sel_pallet.split("|");
+            var pal = temp_pal[0];
+            console.log("Qty needed: " + pck_info.p_pckqty);
+            inquirer.prompt([
+                {
+                    type: "input",
+                    message: "Enter the pick quantity:",
+                    name: "usrpckqty"
+                }
+            ]).then(function(UsrPck){
+                if(UsrPck.usrpckqty == pck_info.p_pckqty)
+                {
+                    update_pck_info(pck_info,pal,pckid);
+                }
+                else
+                {
+                    console.log("You did not enter the correct pick quantity amount, try again");
+                    pck_qty(pck_info);
+                }
+            });
+        });
+    });
+}
+
+function update_pck_info(pck_info, pal,pckid){
+    connection.query("update invpck set pcksts = 'C', appqty = " + pck_info.p_pckqty + " where picref = ?",pckid, function(err,res){
+        if(err) throw err;
+        connection.query("select * from invtbl where loc = '" + pck_info.p_loc + "' and load_id = ?",pal, function(err,res){
+            if(err) throw err;
+            if(pck_info.p_pckqty == res[0].qty)
+            {
+
+            }
+            else
+            {
+                connection.query("update invtbl set qty = qty-" + pck_info.p_pckqty + " where loc = '" + pck_info.p_loc + "' and load_id = ?",pal, function(err,res){
+                    if(err) throw err;
+                    update_pcks_ord(pck_info,pal,pckid);
+                });
+            }
+        });
+    });
+}
+
+function update_pcks_ord(pck_info,pal,pckid){
+    connection.query("update ord_line set shpqty = " + pck_info.p_pckqty + " where ordnum = '" + pck_info.p_ordnum + "' and ordlin = ?",pck_info.p_ordlin, function(err,res){
+        if(err) throw err;
+        connection.query("update ord set ordsts = 'C' where ordnum = ?",pck_info.p_ordnum, function(err,res){
+            if(err) throw err;
+            console.log("pick complete");
+            start_mgr();
         });
     });
 }
